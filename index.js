@@ -1,6 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-var clitable = require("cli-table")
+var Table = require('cli-table');
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -21,8 +21,37 @@ connection.connect(function(err) {
   runSearch();
 });
 
+
+
 function runSearch() {
-    inquirer
+  var table = new Table({
+    head: ['ID', 'Product Name','Department','Price','Stock Quantity']
+  , colWidths: [10, 20, 30, 10, 20]
+  });
+  connection.query(
+    "SELECT * FROM products",
+    function(err,res) {
+      // console.log(res);
+     for (let i = 0; i < res.length; i++) {
+     var id = res[i].id;
+     var product_name = res[i].product_name;
+     var department_name = res[i].department_name;
+     var price = res[i].price;
+     var stock_quantity = res[i].stock_quantity;
+     
+      table.push(
+        [`${id}:`, `${product_name}`, `${department_name}`, `${price}`, `${stock_quantity}`]
+      
+    );
+     }
+    console.log(table.toString());
+  });
+
+
+
+
+  
+  inquirer
       .prompt({
         name: "action",
         type: "list",
@@ -75,7 +104,6 @@ function runSearch() {
             ])
     .then(function(answer) {
     // when finished prompting, insert a new item into the db with that info
-    
     connection.query(
       "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?",
       [answer.amount,answer.id],
@@ -85,6 +113,6 @@ function runSearch() {
         runSearch();
       }
     );
-  });
+  }
+);
 }
-
